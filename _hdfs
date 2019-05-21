@@ -1,0 +1,62 @@
+#compdef hdfs
+
+_hdfs() 
+{
+	typeset -A opt_args
+
+	local cur cword prev
+
+	cur=${words[CURRENT]}
+	prev=${words[CURRENT-1]}
+
+	_arguments -C \
+	'1:cmd:->cmds' \
+	'2:switches:->switches_lists' \
+	'*:arguments:->args' \
+	&& ret=0
+
+	case "$state" in
+		(cmds)
+			local commands; commands=(
+				'dfs:run a filesystem command on the file systems supported in Hadoop.'
+				'namenode:run the DFS namenode.'
+			)
+
+			_describe -t commands 'command' commands && ret=0
+		;;
+		(switches_lists)
+			case $line[1] in 
+			dfs)
+				local switches; switches=(
+					'-ls:List Files'
+					'-rmdir: Remove Directory'
+					'-rm: Remove File'
+				)
+
+				_describe -t switches 'switch' switches && ret=0
+			;;
+			namenode)
+				local switches; switches=(
+					'-format:format the DFS filesystem'
+				)
+				_describe -t switches 'switch' switches && ret=0
+			;;
+			esac
+		;;
+		(args)
+		case $line[2] in
+		(-ls)
+			echo "$words"
+			# runable="$words | sed -e 's/$/-ls \//'"
+			# local folders; folders=(`hdfs dfs -ls ${args:-/} | tr "/" " " | awk '{print $NF}' | tail -n +2`;)
+			local folders; folders=(`eval $words  | tr "/" " " | awk '{print $NF}' | tail -n +2 | sed -e 's/^/\//'` )
+			_describe -t folders 'folder' folders && ret=0
+		;;
+		esac
+	;;
+	esac
+
+	return 1
+}
+
+_hdfs
